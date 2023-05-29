@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+      <link rel="stylesheet" href="../sim.css">
+    <title></title>
+  </head>
+  <body>
+    <!-- Navbar starts -->
+    <nav class="navbar navbar-expand-lg bg" style="background-color: #FFD95A;z-index:2;" >
+  <div class="container-fluid">
+    <a class="navbar-brand" href="simulator/template1.html">OS Simulator</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarText">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item spacing">
+          <a class="nav-link active btn btn-warning" aria-current="page" href="../../index.html">Home</a>
+        </li>
+        <li class="nav-item spacing ">
+          <a class="nav-link btn btn-warning" href="../../info/Process Scheduling/fcfs.html">Information</a>
+        </li>
+        <li class="nav-item spacing">
+          <a class="nav-link btn btn-warning" href="../../books.html">References</a>
+        </li>
+      </ul>
+      <span class="navbar-link">
+
+      </span>
+    </div>
+  </div>
+</nav>
+
+ <!-- Navbar ends -->
+
+<div class="container1" style="background-color:yellow;">
+
+
+
+  <div class="container2" >
+<div class="left-child" style="background-color:white;">
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Dining Philosophers Simulation</title>
+      <style>
+        body {
+          background-color: #a3cbf3;
+        }
+    
+        .container {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+    
+        .title {
+          font-size: 24px;
+          font-weight: bold;
+          margin-bottom: 20px;
+        }
+    
+        .line {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+    
+        .philosopher {
+          width: 120px;
+          height: 120px;
+          border: 2px solid #000;
+          border-radius: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: #f1f1f1;
+          font-weight: bold;
+          font-size: 18px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          transition: background-color 0.3s ease;
+        }
+    
+        .philosopher.eating {
+          background-color: #6ac06a;
+        }
+    
+        .philosopher + .philosopher {
+          margin-left: 20px;
+        }
+    
+        .forks {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 20px;
+        }
+    
+        .fork {
+          position: relative;
+          width: 100px;
+          height: 4px;
+          background-color: #6ac06a;
+          transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+    
+        .fork.used {
+          background-color: #f00c0c;
+        }
+    
+        .fork:not(:first-child) {
+          margin-left: 20px;
+        }
+    
+        .fork.up {
+          transform: translateY(-20px);
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="title">Dining Philosophers Simulation</div>
+        <div class="line">
+          <div class="philosopher">Philosopher 1</div>
+          <div class="philosopher">Philosopher 2</div>
+          <div class="philosopher">Philosopher 3</div>
+          <div class="philosopher">Philosopher 4</div>
+          <div class="philosopher">Philosopher 5</div>
+        </div>
+        <div class="forks">
+          <div class="fork"></div>
+          <div class="fork"></div>
+          <div class="fork"></div>
+          <div class="fork"></div>
+          <div class="fork"></div>
+        </div>
+      </div>
+    
+      <script>
+        class Philosopher {
+          constructor(name, element, forks) {
+            this.name = name;
+            this.element = element;
+            this.forks = forks;
+          }
+    
+          async think() {
+            this.element.classList.remove('eating');
+            this.element.textContent = `${this.name} is thinking.`;
+            await sleep(2000);
+          }
+    
+          async eat() {
+            this.element.classList.add('eating');
+            this.element.textContent = `${this.name} is eating.`;
+            await sleep(2000);
+          }
+    
+          async dine() {
+            while (true) {
+              await this.think();
+    
+              this.element.textContent = `${this.name} is hungry and trying to pick up forks.`;
+    
+              await this.forks[0].acquire();
+              await this.forks[1].acquire();
+    
+              this.forks[0].element.classList.add('used', 'up');
+              this.forks[1].element.classList.add('used', 'up');
+    
+              await this.eat();
+    
+              this.forks[0].element.classList.remove('used', 'up');
+              this.forks[0].release();
+              this.forks[1].element.classList.remove('used', 'up');
+              this.forks[1].release();
+            }
+          }
+        }
+    
+        class Fork {
+          constructor(element) {
+            this.available = true;
+            this.element = element;
+            this.waitingQueue = [];
+          }
+    
+          async acquire() {
+            if (this.available) {
+              this.available = false;
+              return Promise.resolve();
+            } else {
+              await new Promise(resolve => this.waitingQueue.push(resolve));
+              return this.acquire();
+            }
+          }
+    
+          release() {
+            this.available = true;
+            if (this.waitingQueue.length > 0) {
+              const resolve = this.waitingQueue.shift();
+              resolve();
+            }
+          }
+        }
+    
+        function sleep(ms) {
+          return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    
+        // Create forks
+        const forkElements = document.getElementsByClassName('fork');
+        const forks = Array.from(forkElements, element => new Fork(element));
+    
+        // Create philosophers
+        const philosopherElements = document.getElementsByClassName('philosopher');
+        const philosophers = Array.from(philosopherElements, (element, index) => {
+          const leftFork = forks[index];
+          const rightFork = forks[(index + 1) % forks.length];
+          return new Philosopher(`Philosopher ${index + 1}`, element, [leftFork, rightFork]);
+        });
+    
+        // Start dining
+        philosophers.forEach(philosopher => philosopher.dine());
+      </script>
+    </body>
+    </html>
+    
+
+    
+
+
+
+
+
+</div>
+  </div>
+</div>
+
+
+
+
+
+ <!-- Footer starts -->
+ <div class="footers" >
+ <br>
+   <div class="first" >
+  <h1 class="footer-heading">OS - Simulator</h1>
+   </div>
+   <div class="second" >
+     <p>Learn OS with a good simulation in the world of Operating Systems!</p>
+   </div>
+
+   <div class="third" >
+
+     <button class="btn btn-warning padd" onclick="window.location.href = '../../team.html'">Team Details</button>
+     <button class="btn btn-warning padd" onclick="window.location.href = '../../faq.html'">FAQ's</button>
+
+   </div><center>
+  <hr style="width:80%"></center>
+   <div class="fourth">
+  <div class="fourth-left">
+ <span class="sidebar-footer-text">Made with <span ><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+</svg></span> by Anish Kumbhar  & Kiran Reddy</span>
+  </div>
+  <div class="fourth-right">
+ <a href="#" class="links">Teams</a>
+ <a href="#" class="links">Privacy</a>
+ <a href="#" class="links">Cookies</a>
+  </div>
+   </div>
+   <br>
+ </div>
+
+    <!-- Footer ends -->
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+  </body>
+</html>

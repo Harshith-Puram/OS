@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+      <link rel="stylesheet" href="../sim.css">
+      <link rel="stylesheet" href="./styles.css">
+    <title></title>
+  </head>
+  <body>
+    <!-- Navbar starts -->
+    <nav class="navbar navbar-expand-lg bg" style="background-color: #FFD95A;z-index:2;" >
+  <div class="container-fluid">
+    <a class="navbar-brand" href="simulator/template1.html">OS Simulator</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarText">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item spacing">
+          <a class="nav-link active btn btn-warning" aria-current="page" href="../../index.html">Home</a>
+        </li>
+        <li class="nav-item spacing ">
+          <a class="nav-link btn btn-warning" href="../../info/Process Scheduling/fcfs.html">Information</a>
+        </li>
+        <li class="nav-item spacing">
+          <a class="nav-link btn btn-warning" href="../../books.html">References</a>
+        </li>
+      </ul>
+      <span class="navbar-link">
+
+      </span>
+    </div>
+  </div>
+</nav>
+
+ <!-- Navbar ends -->
+
+<div class="container1" style="background-color:yellow;">
+
+
+
+  <div class="container2" >
+<div class="left-child" style="background-color:white;">
+
+
+  <!DOCTYPE html>
+  <html>
+
+  <head>
+      <title>Banker's Algorithm</title>
+      <link rel="stylesheet" type="text/css" href="styles.css">
+  </head>
+
+  <body style="background-color:#FFD95A;">
+    <br>
+      <h1 style="color:black;">Deadlock Avoidance : Banker's Algorithm</h1>
+      <div class="container">
+          <form id="input-form">
+              <div class="input">
+                  <div id="i1">
+                      <label for="num-processes">Enter the number of Processes:</label>
+                      <input type="number" id="num-processes" required><br>
+                  </div>
+                  <div id="i1">
+                      <label for="num-resources">Enter the number of Resources:</label>
+                      <input type="number" id="num-resources" required><br>
+                  </div>
+              </div>
+
+              <h2>Allocation Matrix:</h2>
+              <div id="allocation-matrix"></div>
+
+              <h2>Maximum Matrix:</h2>
+              <div id="max-matrix"></div>
+
+              <h2>Available Resources:</h2>
+              <div id="available-resources"></div>
+
+              <button type="submit" class="btn btn-warning">Detect Deadlock</button>
+          </form>
+
+          <div id="output-section"></div>
+      </div>
+
+      <script>
+          function createMatrixInput(numRows, numCols, idPrefix, label) {
+              var parentElement = document.getElementById(label);
+              parentElement.innerHTML = '';
+
+              for (var i = 0; i < numRows; i++) {
+                  var rowDiv = document.createElement('div');
+                  rowDiv.className = 'row-div';
+
+                  for (var j = 0; j < numCols; j++) {
+                      var columnDiv = document.createElement('div');
+                      columnDiv.className = 'column-div';
+
+                      var input = document.createElement('input');
+                      input.type = 'number';
+                      input.className = 'matrix-input';
+                      input.required = true;
+                      var inputId = idPrefix + '-' + i + '-' + j;
+                      input.id = inputId;
+
+                      var label = document.createElement('label');
+                      label.htmlFor = inputId;
+                      label.textContent = 'P' + i + ' -> R' + j + ':';
+
+                      columnDiv.appendChild(label);
+                      columnDiv.appendChild(input);
+                      rowDiv.appendChild(columnDiv);
+                  }
+
+                  parentElement.appendChild(rowDiv);
+              }
+          }
+
+
+          function createAvailableResourceInputs(numResources) {
+              var parentElement = document.getElementById('available-resources');
+              parentElement.innerHTML = '';
+
+              var resourcesDiv = document.createElement('div');
+              resourcesDiv.className = 'resources-div';
+
+              for (var i = 0; i < numResources; i++) {
+                  var columnDiv = document.createElement('div');
+                  columnDiv.className = 'column-div';
+
+                  var input = document.createElement('input');
+                  input.type = 'number';
+                  input.className = 'resource-input';
+                  input.required = true;
+                  input.placeholder = 'Resource ' + i;
+
+                  columnDiv.appendChild(input);
+                  resourcesDiv.appendChild(columnDiv);
+              }
+
+              parentElement.appendChild(resourcesDiv);
+          }
+
+
+          function detectDeadlock(event) {
+              event.preventDefault();
+
+              var numProcesses = parseInt(document.getElementById('num-processes').value);
+              var numResources = parseInt(document.getElementById('num-resources').value);
+              var availableResources = [];
+
+              var allocationMatrix = [];
+              var maxMatrix = [];
+
+              for (var i = 0; i < numProcesses; i++) {
+                  var allocRow = [];
+                  var maxRow = [];
+
+                  for (var j = 0; j < numResources; j++) {
+                      var allocInput = document.getElementById('alloc-matrix-' + i + '-' + j);
+                      allocRow.push(parseInt(allocInput.value));
+
+                      var maxInput = document.getElementById('max-matrix-' + i + '-' + j);
+                      maxRow.push(parseInt(maxInput.value));
+                  }
+
+                  allocationMatrix.push(allocRow);
+                  maxMatrix.push(maxRow);
+              }
+
+              var f = [];
+              var ans = [];
+              var ind = 0;
+
+              for (var k = 0; k < numProcesses; k++) {
+                  f[k] = 0;
+              }
+
+              var need = [];
+
+              for (var i = 0; i < numProcesses; i++) {
+                  var needRow = [];
+
+                  for (var j = 0; j < numResources; j++) {
+                      needRow.push(maxMatrix[i][j] - allocationMatrix[i][j]);
+                  }
+
+                  need.push(needRow);
+              }
+
+              var resourceInputs = document.getElementsByClassName('resource-input');
+              for (var i = 0; i < resourceInputs.length; i++) {
+                  availableResources.push(parseInt(resourceInputs[i].value));
+              }
+
+              var y = 0;
+
+              for (var k = 0; k < numProcesses; k++) {
+                  for (var i = 0; i < numProcesses; i++) {
+                      if (f[i] === 0) {
+                          var flag = 0;
+
+                          for (var j = 0; j < numResources; j++) {
+                              if (need[i][j] > availableResources[j]) {
+                                  flag = 1;
+                                  break;
+                              }
+                          }
+
+                          if (flag === 0) {
+                              ans[ind++] = i;
+
+                              for (var y = 0; y < numResources; y++) {
+                                  availableResources[y] += allocationMatrix[i][y];
+                              }
+
+                              f[i] = 1;
+                          }
+                      }
+                  }
+              }
+
+              var flag = 1;
+              var outputSection = document.getElementById('output-section');
+              var outputText = '';
+
+              if (flag === 1) {
+                  outputText = 'The following system is SAFE Sequence<br>';
+                  outputText += 'Safe sequence: ';
+
+                  for (var i = 0; i < numProcesses - 1; i++) {
+                      outputText += 'P' + ans[i] + ' -> ';
+                  }
+
+                  outputText += 'P' + ans[numProcesses - 1];
+              } else {
+                  outputText = 'The following system is NOT SAFE';
+              }
+
+              outputSection.innerHTML = outputText;
+          }
+
+          document.getElementById('input-form').addEventListener('submit', detectDeadlock);
+          document.getElementById('num-processes').addEventListener('input', function () {
+              var numProcesses = parseInt(this.value);
+              var numResources = parseInt(document.getElementById('num-resources').value);
+              createMatrixInput(numProcesses, numResources, 'alloc-matrix', 'allocation-matrix');
+              createMatrixInput(numProcesses, numResources, 'max-matrix', 'max-matrix');
+          });
+          document.getElementById('num-resources').addEventListener('input', function () {
+              var numProcesses = parseInt(document.getElementById('num-processes').value);
+              var numResources = parseInt(this.value);
+              createMatrixInput(numProcesses, numResources, 'alloc-matrix', 'allocation-matrix');
+              createMatrixInput(numProcesses, numResources, 'max-matrix', 'max-matrix');
+              createAvailableResourceInputs(numResources);
+          });
+      </script>
+  </body>
+
+  </html>
+
+
+
+</div>
+  </div>
+</div>
+
+
+
+
+
+ <!-- Footer starts -->
+ <div class="footers" >
+ <br>
+   <div class="first" >
+  <h1 class="footer-heading" style="color:black;">OS - Simulator</h1>
+   </div>
+   <div class="second" >
+     <p>Learn OS with a good simulation in the world of Operating Systems!</p>
+   </div>
+
+   <div class="third" >
+
+     <button class="btn btn-warning padd" onclick="window.location.href = '../../team.html'">Team Details</button>
+     <button class="btn btn-warning padd" onclick="window.location.href = '../../faq.html'">FAQ's</button>
+
+   </div><center>
+  <hr style="width:80%"></center>
+   <div class="fourth">
+  <div class="fourth-left">
+ <span class="sidebar-footer-text">Made with <span ><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
+</svg></span> by Anish Kumbhar  & Kiran Reddy</span>
+  </div>
+  <div class="fourth-right">
+ <a href="#" class="links">Teams</a>
+ <a href="#" class="links">Privacy</a>
+ <a href="#" class="links">Cookies</a>
+  </div>
+   </div>
+   <br>
+ </div>
+
+    <!-- Footer ends -->
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+  </body>
+</html>
